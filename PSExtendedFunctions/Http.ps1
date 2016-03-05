@@ -12,7 +12,9 @@
             Write-Output ("{0}: DONE with request." -f (Get-Date))
         }
         catch [System.Management.Automation.MethodInvocationException]{
-            Write-Output ("{0}: FAILED! Continuing anyway..." -f (Get-Date))
+            Write-Output ("{0}: FAILED! with message {1}. Continuing anyway..." -f (Get-Date),
+                (Get-DefaultErrorMessage $_))
+            Write-Output ("{0}: Continuing anyway..." -f (Get-Date))
         }
     }
  }
