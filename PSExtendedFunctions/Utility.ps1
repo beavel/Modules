@@ -13,6 +13,8 @@ function Set-Constant{
 }
 
 function Test-ElevatedPrivileges{
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingWriteHost", "")]
+    param()
 	$currentPrincipal = New-Object Security.Principal.WindowsPrincipal( `
 		[Security.Principal.WindowsIdentity]::GetCurrent())
 		

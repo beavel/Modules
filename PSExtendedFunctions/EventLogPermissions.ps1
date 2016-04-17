@@ -1,6 +1,7 @@
 $eventLogRegLocation = 'HKLM:\SYSTEM\CurrentControlSet\services\eventlog\'
 
 function Set-EventLogPermissions{
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingInvokeExpression", "")]
     param(
         [Parameter(Mandatory=$true)]
         [String]$Account,
