@@ -45,11 +45,11 @@ function New-Directories{
                                        "Create directory '$Path'?",
                                        "Creating directory"))
             {
-                if($PSCmdlet.ShouldContinue("Do you want to create the directory '$Path'?",
+                if($PSCmdlet.ShouldContinue("Do you REALLY want to create the directory '$Path'?",
                                             "Creating '$Path'",
                                             [Ref]$confirmAll, [Ref]$rejectAll))
                 {
-                New-Item -Path $Path -ItemType Directory | Out-Null
+                New-Item -Path $Path -ItemType Directory -Confirm:$false | Out-Null
                 Write-Verbose ("{0}: Created directory $Path" -f (Get-Date))
                 }
             }
