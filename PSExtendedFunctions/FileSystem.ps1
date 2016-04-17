@@ -18,16 +18,41 @@ function Get-UniqueFileName{
 }
 
 function New-Directories{
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess=$true, ConfirmImpact="Low")]
     param(
         [Parameter(Mandatory=$true,Position=0,ValueFromPipeline=$true)]
         [ValidateNotNullOrEmpty()]
         [String]$Path
     )
+    BEGIN{
+        if($ConfirmPreference -eq ‘Low’){
+            <#
+                User:
+                * selected -Confirm
+                * has $Global:ConfirmPreference set to Low.
+            #>
+            $confirmAll = $false
+        } else {
+            # No -Confirm, so we won’t prompt the user…
+            $confirmAll = $true
+        }
+
+        $rejectAll = $false
+    }
     PROCESS{
         if( -not (Test-Path $Path -PathType Container)){
-            New-Item -Path $Path -ItemType Directory | Out-Null
-            Write-Verbose ("{0}: Created directory $Path" -f (Get-Date))
+            if($PSCmdlet.ShouldProcess("Created directory '$Path'.",
+                                       "Create directory '$Path'?",
+                                       "Creating directory"))
+            {
+                if($PSCmdlet.ShouldContinue("Do you want to create the directory '$Path'?",
+                                            "Creating '$Path'",
+                                            [Ref]$confirmAll, [Ref]$rejectAll))
+                {
+                New-Item -Path $Path -ItemType Directory | Out-Null
+                Write-Verbose ("{0}: Created directory $Path" -f (Get-Date))
+                }
+            }
         }
     }
 }
