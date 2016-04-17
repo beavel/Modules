@@ -49,8 +49,8 @@ function New-Directories{
                                             "Creating '$Path'",
                                             [Ref]$confirmAll, [Ref]$rejectAll))
                 {
-                New-Item -Path $Path -ItemType Directory -Confirm:$false | Out-Null
-                Write-Verbose ("{0}: Created directory $Path" -f (Get-Date))
+                    New-Item -Path $Path -ItemType Directory -Confirm:$false | Out-Null
+                    Write-Verbose ("{0}: Created directory $Path" -f (Get-Date))
                 }
             }
         }
