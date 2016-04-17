@@ -1,4 +1,4 @@
-function Get-UniqueFileName{
+ï»¿function Get-UniqueFileName{
     param(
         [Parameter(Mandatory=$true,Position=0,ValueFromPipeline=$true)]
         [ValidateNotNullOrEmpty()]
@@ -25,7 +25,7 @@ function New-Directories{
         [String]$Path
     )
     BEGIN{
-        if($ConfirmPreference -eq ‘Low’){
+        if($ConfirmPreference -eq 'Low'){
             <#
                 User:
                 * selected -Confirm
@@ -33,7 +33,7 @@ function New-Directories{
             #>
             $confirmAll = $false
         } else {
-            # No -Confirm, so we won’t prompt the user…
+            # No -Confirm, so we won't prompt the user...
             $confirmAll = $true
         }
 
