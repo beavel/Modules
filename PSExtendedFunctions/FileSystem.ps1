@@ -22,7 +22,9 @@ function New-Directories{
     param(
         [Parameter(Mandatory=$true,Position=0,ValueFromPipeline=$true)]
         [ValidateNotNullOrEmpty()]
-        [String]$Path
+        [String]$Path,
+
+        [Switch]$Force
     )
     BEGIN{
         if($ConfirmPreference -eq 'Low'){
@@ -45,7 +47,7 @@ function New-Directories{
                                        "Create directory '$Path'?",
                                        "Creating directory"))
             {
-                if($PSCmdlet.ShouldContinue("Do you REALLY want to create the directory '$Path'?",
+                if($Force -or $PSCmdlet.ShouldContinue("Do you REALLY want to create the directory '$Path'?",
                                             "Creating '$Path'",
                                             [Ref]$confirmAll, [Ref]$rejectAll))
                 {
