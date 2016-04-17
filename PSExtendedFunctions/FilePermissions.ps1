@@ -11,7 +11,7 @@ function New-FileSystemAccessRule{
 
     )
     try{
-        $accountSid = Get-Sid -Name $AccountName
+        Get-Sid -Name $AccountName | Out-Null
     }
     catch{
         throw 'Invalid AccountName! AccountName provided couldn''t be found on system.'

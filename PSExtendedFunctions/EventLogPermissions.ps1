@@ -17,7 +17,7 @@ function Set-EventLogPermissions{
         [AccessControlType]$AllowDeny = 'Allow'
     )
     try{
-        $accountSid = Get-Sid -Name $Account
+        Get-Sid -Name $Account | Out-Null
     }
     catch{
         throw 'Invalid AccountName! AccountName provided couldn''t be found on system.'
