@@ -62,6 +62,7 @@ function Set-XmlConfigValue{
 
     try{
         $fileUpdated = $false
+        $operationType = ''
 
         if([String]::IsNullOrEmpty($config.xml)){
             # Set encoding
@@ -69,48 +70,67 @@ function Set-XmlConfigValue{
             $xmlDeclaration.Encoding = [System.Text.Encoding]::UTF8
         }
 
+        $xmlElem = New-Object System.Xml.XmlDocument
+        $xmlElem.LoadXml($XmlNode)
+        $newNode = $config.ImportNode($xmlElem.DocumentElement,$true)
+
         if([String]::IsNullOrEmpty($config.DocumentElement.xmlns)){
             $node = $config.SelectSingleNode("$XPath")
+            if($node -eq $null -and ($Operation -eq 'Add')){
+                $parentXPath = Get-XPathParentNode -XPath $XPath
+                $node = $config.SelectSingleNode($parentXPath)
+                $operationType = 'Add'
+            }elseif(($node -ne $null) -and ($Operation -eq 'Add')){
+                $operationType = 'Update'
+            }elseif(($node -ne $null) -and ($Operation -eq 'Remove')){
+                $operationType = 'Remove'
+            }
         }else{
             $namespace = New-Object XmlNamespaceManager -ArgumentList $config.NameTable
             $namespace.AddNamespace('ns',$config.DocumentElement.xmlns)
             $node = $config.SelectSingleNode("$XPath",$namespace)
+            if($node -eq $null -and ($Operation -eq 'Add')){
+                $parentXPath = Get-XPathParentNode -XPath $XPath
+                $node = $config.SelectSingleNode($parentXPath,$namespace)
+                $operationType = 'Add'
+            }elseif(($node -ne $null) -and ($Operation -eq 'Add')){
+                $operationType = 'Update'
+            }elseif(($node -ne $null) -and ($Operation -eq 'Remove')){
+                $operationType = 'Remove'
+            }
         }
-        if($node -ne $null){
-            $xmlElem = New-Object System.Xml.XmlDocument
-            $xmlElem.LoadXml($XmlNode)
-            $newNode = $config.ImportNode($xmlElem.DocumentElement,$true)
+        if($node -ne $null -and $operationType -ne ''){
+            switch($operationType){
+                'Update'{
+                    if( -not(Test-XmlNode -ParentNode $node -XmlNode $newNode)){
+                        if($newNode.ToString() -ne $newNode.name){
+                            $oldNode = $node."$($newNode.ToString())" | where{$_.name -eq $newNode.name}
+                        }else{
+                            $oldNode = $node."$($newNode.Name)"
+                        }
+                        if($oldNode.GetType().FullName -eq 'System.String'){
+                            $node."$($newNode.Name)" = $newNode.'#text'
+                        }else{
+                            $node.ReplaceChild($newNode, $oldNode) | Out-Null
+                        }
+                        $fileUpdated = $true
+                        $changeType = 'Updated'
+                    }
+                }
 
-            if((Test-XmlNode -ParentNode $node -XmlNode $newNode -MatchByName) -and ($Operation -eq 'Add')){
-                if( -not(Test-XmlNode -ParentNode $node -XmlNode $newNode)){
-                    if($newNode.ToString() -ne $newNode.name){
-                        $oldNode = $node."$($newNode.ToString())" | where{$_.name -eq $newNode.name}
-                    }else{
-                        $oldNode = $node."$($newNode.Name)"
-                    }
-                    if($oldNode.GetType().FullName -eq 'System.String'){
-                        $node."$($newNode.Name)" = $newNode.'#text'
-                    }else{
-                        $node.ReplaceChild($newNode, $oldNode) | Out-Null
-                    }
+                'Add'{
+                    $node.AppendChild($newNode) | Out-Null
                     $fileUpdated = $true
-                    $changeType = 'Updated'
+                    $changeType = 'Added'
+                }
+
+                'Remove'{
+                    $oldNode = $node."$($newNode.ToString())"
+                    $node.RemoveChild($oldNode) | Out-Null
+                    $fileUpdated = $true
+                    $changeType = 'Removed'
                 }
             }
-
-            if( -not(Test-XmlNode -ParentNode $node -XmlNode $newNode) -and ($Operation -eq 'Add')){
-                $node.AppendChild($newNode) | Out-Null
-                $fileUpdated = $true
-                $changeType = 'Added'
-            }
-
-            if((Test-XmlNode -ParentNode $node -XmlNode $newNode) -and ($Operation -eq 'Remove')){
-                $oldNode = $node."$($newNode.ToString())"
-                $node.RemoveChild($oldNode) | Out-Null
-                $fileUpdated = $true
-                $changeType = 'Removed'
-            }
-
             if($fileUpdated -and $PSCmdlet.ParameterSetName -eq 'File'){
                 try{
                     # Backup before committing file changes #

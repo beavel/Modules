@@ -47,7 +47,7 @@ Describe "Set-XmlConfigValue" {
     Context "When inserting via a named element"{
         $params = @{
             XML = $testXMLNamedElement
-            XPath = 'configuration/microsoft.identityServer.web'
+            XPath = 'configuration/microsoft.identityServer.web/useRelayStateForIdpInitiatedSignOn'
             XmlNode = '<useRelayStateForIdpInitiatedSignOn enabled="true" />'  
         }
 
@@ -126,6 +126,22 @@ Describe "Set-XmlConfigValue" {
 </configuration>
 "@
 
+[XML]$expectedXMLInserted = @"
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<configuration>
+  <appSettings>
+    <add key="Key1" value="Value1" />
+    <add key="Url" value="https://somewhere.com/site/" />
+    <add key="Secret" value="123sadfoife" />
+  </appSettings>
+  <connectionStrings>
+    <add name="ConnectionString1" connectionString="NotTheCorrectString" />
+    <add name="ConnectionString2" connectionString="Data Source=Server2;Initial Catalog=Database2;Integrated Security = true" providerName="System.Data.SqlClient" />
+    <add name="ConnectionString3" connectionString="Data Source=Server3;Initial Catalog=Database3;Integrated Security = true" providerName="System.Data.SqlClient" />
+  </connectionStrings>
+</configuration>
+"@
+
     Context "When updating via attribute 'name'"{
         $params = @{
             XML = $originalXML
@@ -136,6 +152,19 @@ Describe "Set-XmlConfigValue" {
         [XML]$xmlResult = Set-XmlConfigValue @params
         It "Should return updated XML with new element" {
             $xmlResult.OuterXml | Should Be $expectedXML.OuterXml
+        }
+    }
+
+    Context "When inserting via attribute 'name'"{
+        $params = @{
+            XML = $expectedXML
+            XPath = '/configuration/connectionStrings/add[@name="ConnectionString3"]'
+            XmlNode = '<add name="ConnectionString3" connectionString="Data Source=Server3;Initial Catalog=Database3;Integrated Security = true" providerName="System.Data.SqlClient" />'
+        }
+
+        [XML]$xmlResult = Set-XmlConfigValue @params
+        It "Should return updated XML with new element" {
+            $xmlResult.OuterXml | Should Be $expectedXMLInserted.OuterXml
         }
     }
 }
