@@ -95,4 +95,47 @@ Describe "Set-XmlConfigValue" {
             $xmlResult | Should Be $null
         }
     }
+
+[XML]$originalXML = @"
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<configuration>
+  <appSettings>
+    <add key="Key1" value="Value1" />
+    <add key="Url" value="https://somewhere.com/site/" />
+    <add key="Secret" value="123sadfoife" />
+  </appSettings>
+  <connectionStrings>
+    <add name="ConnectionString1" connectionString="NotTheCorrectString" />
+    <add name="ConnectionString2" connectionString="Data Source=Server1;Initial Catalog=Database ;Integrated Security=True;" providerName="System.Data.SqlClient" />
+  </connectionStrings>
+</configuration>
+"@
+
+[XML]$expectedXML = @"
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<configuration>
+  <appSettings>
+    <add key="Key1" value="Value1" />
+    <add key="Url" value="https://somewhere.com/site/" />
+    <add key="Secret" value="123sadfoife" />
+  </appSettings>
+  <connectionStrings>
+    <add name="ConnectionString1" connectionString="NotTheCorrectString" />
+    <add name="ConnectionString2" connectionString="Data Source=Server2;Initial Catalog=Database2;Integrated Security = true" providerName="System.Data.SqlClient" />
+  </connectionStrings>
+</configuration>
+"@
+
+    Context "When updating via attribute 'name'"{
+        $params = @{
+            XML = $originalXML
+            XPath = '/configuration/connectionStrings'
+            XmlNode = '<add name="ConnectionString2" connectionString="Data Source=Server2;Initial Catalog=Database2;Integrated Security = true" providerName="System.Data.SqlClient" />'
+        }
+
+        [XML]$xmlResult = Set-XmlConfigValue @params
+        It "Should return updated XML with new element" {
+            $xmlResult.OuterXml | Should Be $expectedXML.OuterXml
+        }
+    }
 }
