@@ -27,7 +27,7 @@ if($PSVersionTable.PSVersion.Major -gt 2){
         where{$_.Name -ne 'Utility.ps1'} | 
         foreach{. $_.FullName}
 }else{
-    Get-ChildItem -Path * -Include *.ps1 | 
+    Get-ChildItem -Path * -Include *.ps1 -Exclude *Tests* | 
         where{@('Utility.ps1','CompressDirectoryToZip.ps1') -notcontains $_.Name} | 
         foreach{. $_.FullName}
 }
