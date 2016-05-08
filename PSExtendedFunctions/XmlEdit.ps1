@@ -28,9 +28,13 @@
 
 function Set-XmlConfigValue{
     param(
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory=$true,ParameterSetName='File')]
         [ValidateScript({Test-Path -Path $_ -PathType Leaf})]
         [String]$Path,
+
+        [Parameter(Mandatory=$true,ParameterSetName='XML')]
+        [ValidateNotNullOrEmpty()]
+        [XML]$XML,
 
         [Parameter(Mandatory=$true)]
         [String]$XPath,
@@ -43,11 +47,13 @@ function Set-XmlConfigValue{
 
         [Switch]$ResetFileAttributes
     )
+    switch($PSCmdlet.ParameterSetName){
+        'File'{[XML]$config = Get-Content -Path $Path}
+        'XML'{[XML]$config = $XML.Clone()}
+    }
+
     try{
         $fileUpdated = $false
-        
-
-        [XML]$config = Get-Content -Path $Path
 
         if([String]::IsNullOrEmpty($config.xml)){
             # Set encoding
@@ -97,7 +103,7 @@ function Set-XmlConfigValue{
                 $changeType = 'Removed'
             }
 
-            if($fileUpdated){
+            if($fileUpdated -and $PSCmdlet.ParameterSetName -eq 'File'){
                 try{
                     # Backup before committing file changes #
                     $newFile = Backup-File -File $Path
@@ -120,6 +126,8 @@ function Set-XmlConfigValue{
                     Write-Output ("{0}: Save FAILED for {1} when adding node {2} to XPath {3}..." `
                         -f (Get-Date),$Path,$XmlNode,$XPath)
                 }
+            }elseif($fileUpdated -and $PSCmdlet.ParameterSetName -eq 'XML'){
+                return $config
             }else{
                 Write-Verbose ("{0}: No update needed for {1} node '{2}' already exists..." -f (Get-Date), $Path, $XmlNode)
             }
