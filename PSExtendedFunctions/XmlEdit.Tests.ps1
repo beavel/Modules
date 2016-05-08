@@ -139,3 +139,28 @@ Describe "Set-XmlConfigValue" {
         }
     }
 }
+
+Describe "Get-XPathParentNode" {
+    InModuleScope PSExtendedFunctions{
+        Context "Straight node selection" {
+            $result = Get-XPathParentNode -XPath 'configuration/microsoft.identityServer.web/useRelayStateForIdpInitiatedSignOn'
+            It "Should return with last node removed" {
+                $result | Should Be 'configuration/microsoft.identityServer.web'
+            }
+        }
+
+        Context "Relative node selection" {
+            $result = Get-XPathParentNode -XPath '/configuration/microsoft.identityServer.web//useRelayStateForIdpInitiatedSignOn'
+            It "Should return with last node removed" {
+                $result | Should Be '/configuration/microsoft.identityServer.web'
+            }
+        }
+
+        Context "Node selection with attributes" {
+            $result = Get-XPathParentNode -XPath '/configuration/connectionStrings/add[@name="ConnectionString2"]'
+            It "Should return with last node removed" {
+                $result | Should Be '/configuration/connectionStrings'
+            }
+        }
+    }
+}

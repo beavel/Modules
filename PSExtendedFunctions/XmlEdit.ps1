@@ -26,6 +26,14 @@
     return $exists
 }
 
+function Get-XPathParentNode{
+    param(
+        [Parameter(Mandatory=$true)]
+        [String]$XPath
+    )
+    $XPath.Substring(0,$XPath.LastIndexOf('/')).TrimEnd('/')
+}
+
 function Set-XmlConfigValue{
     param(
         [Parameter(Mandatory=$true,ParameterSetName='File')]
