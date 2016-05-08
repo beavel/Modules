@@ -3,7 +3,7 @@ Import-Module $PSScriptRoot\PSExtendedFunctions.psm1 -Force
 
 Describe "Set-XmlConfigValue" {
 
-[XML]$testXMLNamedElement = @"
+[XML]$testXMLSelfClosingElement = @"
 <?xml version="1.0"?>
 <configuration>
   <microsoft.identityServer.web>
@@ -16,7 +16,7 @@ Describe "Set-XmlConfigValue" {
 </configuration>
 "@
 
-[XML]$expectedXMLNamedElement = @"
+[XML]$expectedXMLSelfClosingElement = @"
 <?xml version="1.0"?>
 <configuration>
   <microsoft.identityServer.web>
@@ -30,7 +30,7 @@ Describe "Set-XmlConfigValue" {
 </configuration>
 "@
 
-[XML]$expectedXMLNamedElementUpdated = @"
+[XML]$expectedXMLSelfClosingElementUpdated = @"
 <?xml version="1.0"?>
 <configuration>
   <microsoft.identityServer.web>
@@ -44,48 +44,48 @@ Describe "Set-XmlConfigValue" {
 </configuration>
 "@
 
-    Context "When inserting via a named element"{
+    Context "When inserting via a self-closing element"{
         $params = @{
-            XML = $testXMLNamedElement
+            XML = $testXMLSelfClosingElement
             XPath = 'configuration/microsoft.identityServer.web/useRelayStateForIdpInitiatedSignOn'
             XmlNode = '<useRelayStateForIdpInitiatedSignOn enabled="true" />'  
         }
 
         [XML]$xmlResult = Set-XmlConfigValue @params
         It "Should return updated XML with new element" {
-            $xmlResult.OuterXml | Should Be $expectedXMLNamedElement.OuterXml
+            $xmlResult.OuterXml | Should Be $expectedXMLSelfClosingElement.OuterXml
         }
     }
 
-    Context "When updating via a named element"{
+    Context "When updating via a self-closing element"{
         $params = @{
-            XML = $expectedXMLNamedElement
+            XML = $expectedXMLSelfClosingElement
             XPath = 'configuration/microsoft.identityServer.web/useRelayStateForIdpInitiatedSignOn'
             XmlNode = '<useRelayStateForIdpInitiatedSignOn enabled="false" />'  
         }
 
         [XML]$xmlResult = Set-XmlConfigValue @params
         It "Should return updated XML with attributes updated" {
-            $xmlResult.OuterXml | Should Be $expectedXMLNamedElementUpdated.OuterXml
+            $xmlResult.OuterXml | Should Be $expectedXMLSelfClosingElementUpdated.OuterXml
         }
     }
 
-    Context "When removing via a named element"{
+    Context "When removing via a self-closing element"{
         $params = @{
-            XML = $expectedXMLNamedElement
+            XML = $expectedXMLSelfClosingElement
             XPath = 'configuration/microsoft.identityServer.web/useRelayStateForIdpInitiatedSignOn'
             XmlNode = '<useRelayStateForIdpInitiatedSignOn enabled="true" />'
             Operation = 'Remove'
         }
         [XML]$xmlResult = Set-XmlConfigValue @params
         It "Should return updated XML without XmlNode" {
-            $xmlResult.OuterXml | Should Be $testXMLNamedElement.OuterXml
+            $xmlResult.OuterXml | Should Be $testXMLSelfClosingElement.OuterXml
         }
     }
 
-    Context "When there are no changes via a named element" {
+    Context "When there are no changes via a self-closing element" {
         $params = @{
-            XML = $expectedXMLNamedElement
+            XML = $expectedXMLSelfClosingElement
             XPath = 'configuration/microsoft.identityServer.web/useRelayStateForIdpInitiatedSignOn'
             XmlNode = '<useRelayStateForIdpInitiatedSignOn enabled="true" />'  
         }
@@ -96,9 +96,9 @@ Describe "Set-XmlConfigValue" {
         }
     }
 
-    Context "When there are no removals via a named element" {
+    Context "When there are no removals via a self-closing element" {
         $params = @{
-            XML = $testXMLNamedElement
+            XML = $testXMLSelfClosingElement
             XPath = 'configuration/microsoft.identityServer.web/useRelayStateForIdpInitiatedSignOn'
             XmlNode = '<useRelayStateForIdpInitiatedSignOn enabled="true" />'
             Operation = 'Remove'  
