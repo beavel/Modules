@@ -1,7 +1,10 @@
 ﻿function Test-XmlNode{
     param(
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory=$true,ParameterSetName='ParentNode')]
         [System.Xml.XmlElement]$ParentNode,
+
+        [Parameter(Mandatory=$true,ParameterSetName='CurrentNode')]
+        [System.Xml.XmlElement]$CurrentNode,
 
         [Parameter(Mandatory=$true)]
         [System.Xml.XmlElement]$XmlNode,
@@ -9,17 +12,16 @@
         [Switch]$MatchByName
     )
     $exists = $false
-    if($MatchByName){
-        if(($ParentNode["$($XmlNode.ToString())"] -ne $null) -or (
-            $ParentNode.name -eq $XmlNode.name))
-        {
-            $exists = $true
+    switch($PSCmdlet.ParameterSetName){
+        'CurrentNode'{
+            $exists = $CurrentNode.OuterXml -eq $XmlNode.OuterXml
         }
-    }else{
-        foreach($n in $ParentNode.ChildNodes){
-            if($n.OuterXml -eq $XmlNode.OuterXml){
-                $exists = $true
-                break
+        'ParentNode'{
+            foreach($n in $ParentNode.ChildNodes){
+                if($n.OuterXml -eq $XmlNode.OuterXml){
+                    $exists = $true
+                    break
+                }
             }
         }
     }
@@ -102,21 +104,13 @@ function Set-XmlConfigValue{
         if($node -ne $null -and $operationType -ne ''){
             switch($operationType){
                 'Update'{
-                    if( -not(Test-XmlNode -ParentNode $node -XmlNode $newNode)){
-                        if($newNode.ToString() -ne $newNode.name){
-                            $oldNode = $node."$($newNode.ToString())" | where{$_.name -eq $newNode.name}
-                        }else{
-                            $oldNode = $node."$($newNode.Name)"
+                    if( -not(Test-XmlNode -CurrentNode $node -XmlNode $newNode)){
+                            $parentNode = $node.ParentNode
+                            $parentNode.ReplaceChild($newNode, $node) | Out-Null
+                            $fileUpdated = $true
+                            $changeType = 'Updated'
                         }
-                        if($oldNode.GetType().FullName -eq 'System.String'){
-                            $node."$($newNode.Name)" = $newNode.'#text'
-                        }else{
-                            $node.ReplaceChild($newNode, $oldNode) | Out-Null
-                        }
-                        $fileUpdated = $true
-                        $changeType = 'Updated'
                     }
-                }
 
                 'Add'{
                     $node.AppendChild($newNode) | Out-Null

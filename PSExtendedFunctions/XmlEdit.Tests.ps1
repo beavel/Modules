@@ -60,7 +60,7 @@ Describe "Set-XmlConfigValue" {
     Context "When updating via a named element"{
         $params = @{
             XML = $expectedXMLNamedElement
-            XPath = 'configuration/microsoft.identityServer.web'
+            XPath = 'configuration/microsoft.identityServer.web/useRelayStateForIdpInitiatedSignOn'
             XmlNode = '<useRelayStateForIdpInitiatedSignOn enabled="false" />'  
         }
 
@@ -86,7 +86,7 @@ Describe "Set-XmlConfigValue" {
     Context "When there are no changes via a named element" {
         $params = @{
             XML = $expectedXMLNamedElement
-            XPath = 'configuration/microsoft.identityServer.web'
+            XPath = 'configuration/microsoft.identityServer.web/useRelayStateForIdpInitiatedSignOn'
             XmlNode = '<useRelayStateForIdpInitiatedSignOn enabled="true" />'  
         }
 
@@ -159,7 +159,7 @@ Describe "Set-XmlConfigValue" {
     Context "When updating via attribute 'name'"{
         $params = @{
             XML = $originalXML
-            XPath = '/configuration/connectionStrings'
+            XPath = '/configuration/connectionStrings/add[@name="ConnectionString2"]'
             XmlNode = '<add name="ConnectionString2" connectionString="Data Source=Server2;Initial Catalog=Database2;Integrated Security = true" providerName="System.Data.SqlClient" />'
         }
 
