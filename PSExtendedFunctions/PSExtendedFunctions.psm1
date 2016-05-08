@@ -13,10 +13,11 @@ Push-Location -Path "$(Split-Path -Parent $MyInvocation.MyCommand.Path)"
 
 [Hashtable]$typeAccelerators = @{
     AccessControlType     = 'System.Security.AccessControl.AccessControlType'
+    FileAttributes        = 'System.IO.FileAttributes'
     FileSystemAccessRule  = 'System.Security.AccessControl.FileSystemAccessRule'
     FileSystemRights      = 'System.Security.AccessControl.FileSystemRights'
     RegistryAccessRule    = 'System.Security.AccessControl.RegistryAccessRule'
-    FileAttributes        = 'System.IO.FileAttributes'
+    XmlNamespaceManager  = 'System.Xml.XmlNamespaceManager'
 }
 
 Set-ExtendedTypeAccelerators $typeAccelerators

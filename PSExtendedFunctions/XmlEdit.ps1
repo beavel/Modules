@@ -10,7 +10,9 @@
     )
     $exists = $false
     if($MatchByName){
-        if($ParentNode["$($XmlNode.ToString())"] -ne $null){
+        if(($ParentNode["$($XmlNode.ToString())"] -ne $null) -or (
+            $ParentNode.name -eq $XmlNode.name))
+        {
             $exists = $true
         }
     }else{
@@ -47,11 +49,19 @@ function Set-XmlConfigValue{
 
         [XML]$webConfig = Get-Content -Path $Path
 
-        # Set encoding
-        $xmlDeclaration = $webConfig.CreateXmlDeclaration('1.0',$null,$null)
-        $xmlDeclaration.Encoding = [System.Text.Encoding]::UTF8
+        if([String]::IsNullOrEmpty($webConfig.xml)){
+            # Set encoding
+            $xmlDeclaration = $webConfig.CreateXmlDeclaration('1.0',$null,$null)
+            $xmlDeclaration.Encoding = [System.Text.Encoding]::UTF8
+        }
 
-        $node = $webConfig.SelectSingleNode("$XPath")
+        if([String]::IsNullOrEmpty($webConfig.DocumentElement.xmlns)){
+            $node = $webConfig.SelectSingleNode("$XPath")
+        }else{
+            $namespace = New-Object XmlNamespaceManager -ArgumentList $webConfig.NameTable
+            $namespace.AddNamespace('ns',$webConfig.DocumentElement.xmlns)
+            $node = $webConfig.SelectSingleNode("$XPath",$namespace)
+        }
         if($node -ne $null){
             $xmlElem = New-Object System.Xml.XmlDocument
             $xmlElem.LoadXml($XmlNode)
@@ -59,8 +69,16 @@ function Set-XmlConfigValue{
 
             if((Test-XmlNode -ParentNode $node -XmlNode $newNode -MatchByName) -and ($Operation -eq 'Add')){
                 if( -not(Test-XmlNode -ParentNode $node -XmlNode $newNode)){
-                    $oldNode = $node."$($newNode.ToString())"
-                    $node.ReplaceChild($newNode, $oldNode) | Out-Null
+                    if($newNode.ToString() -ne $newNode.name){
+                        $oldNode = $node."$($newNode.ToString())" | where{$_.name -eq $newNode.name}
+                    }else{
+                        $oldNode = $node."$($newNode.Name)"
+                    }
+                    if($oldNode.GetType().FullName -eq 'System.String'){
+                        $node."$($newNode.Name)" = $newNode.'#text'
+                    }else{
+                        $node.ReplaceChild($newNode, $oldNode) | Out-Null
+                    }
                     $fileUpdated = $true
                     $changeType = 'Updated'
                 }
