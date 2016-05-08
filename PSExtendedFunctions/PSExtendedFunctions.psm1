@@ -23,7 +23,9 @@ Push-Location -Path "$(Split-Path -Parent $MyInvocation.MyCommand.Path)"
 Set-ExtendedTypeAccelerators $typeAccelerators
 
 if($PSVersionTable.PSVersion.Major -gt 2){
-    Get-ChildItem -Path * -Include *.ps1 | where{$_.Name -ne 'Utility.ps1'} | foreach{. $_.FullName}
+    Get-ChildItem -Path * -Include *.ps1 -Exclude *Tests* | 
+        where{$_.Name -ne 'Utility.ps1'} | 
+        foreach{. $_.FullName}
 }else{
     Get-ChildItem -Path * -Include *.ps1 | 
         where{@('Utility.ps1','CompressDirectoryToZip.ps1') -notcontains $_.Name} | 
