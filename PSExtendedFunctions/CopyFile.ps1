@@ -13,16 +13,15 @@
         [String]$DestinationPath,
 
         [Parameter(Mandatory=$false)]
-        [PSCredential]$Credential
+        [System.Management.Automation.PSCredential]
+        [System.Management.Automation.Credential()]
+        $Credential
     )
 
     BEGIN{
         if($DestinationPath.EndsWith('\')){
             $DestinationPath = $DestinationPath.TrimEnd('\')
         }
-
-        $fileName = Split-Path -Path $Path -Leaf
-        $remotePath = $DestinationPath + '\' + $fileName
 
         $DestinationPath = $DestinationPath.Replace(':','$')
 
