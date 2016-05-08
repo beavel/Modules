@@ -63,7 +63,7 @@ function Set-XmlConfigValue{
     }
 
     try{
-        $fileUpdated = $false
+        $updated = $false
         $operationType = ''
 
         if([String]::IsNullOrEmpty($config.xml)){
@@ -107,25 +107,25 @@ function Set-XmlConfigValue{
                     if( -not(Test-XmlNode -CurrentNode $node -XmlNode $newNode)){
                             $parentNode = $node.ParentNode
                             $parentNode.ReplaceChild($newNode, $node) | Out-Null
-                            $fileUpdated = $true
+                            $updated = $true
                             $changeType = 'Updated'
                         }
                     }
 
                 'Add'{
                     $node.AppendChild($newNode) | Out-Null
-                    $fileUpdated = $true
+                    $updated = $true
                     $changeType = 'Added'
                 }
 
                 'Remove'{
                     $paretNode = $node.ParentNode
                     $paretNode.RemoveChild($node) | Out-Null
-                    $fileUpdated = $true
+                    $updated = $true
                     $changeType = 'Removed'
                 }
             }
-            if($fileUpdated -and $PSCmdlet.ParameterSetName -eq 'File'){
+            if($updated -and $PSCmdlet.ParameterSetName -eq 'File'){
                 try{
                     # Backup before committing file changes #
                     $newFile = Backup-File -File $Path
@@ -148,7 +148,7 @@ function Set-XmlConfigValue{
                     Write-Output ("{0}: Save FAILED for {1} when adding node {2} to XPath {3}..." `
                         -f (Get-Date),$Path,$XmlNode,$XPath)
                 }
-            }elseif($fileUpdated -and $PSCmdlet.ParameterSetName -eq 'XML'){
+            }elseif($updated -and $PSCmdlet.ParameterSetName -eq 'XML'){
                 return $config
             }else{
                 Write-Verbose ("{0}: No update needed for {1} node '{2}' already exists..." -f (Get-Date), $Path, $XmlNode)
