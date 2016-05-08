@@ -73,9 +73,9 @@ Describe "Set-XmlConfigValue" {
     Context "When removing via a named element"{
         $params = @{
             XML = $expectedXMLNamedElement
-            XPath = 'configuration/microsoft.identityServer.web'
+            XPath = 'configuration/microsoft.identityServer.web/useRelayStateForIdpInitiatedSignOn'
             XmlNode = '<useRelayStateForIdpInitiatedSignOn enabled="true" />'
-            Operation = 'Remove' 
+            Operation = 'Remove'
         }
         [XML]$xmlResult = Set-XmlConfigValue @params
         It "Should return updated XML without XmlNode" {
@@ -88,6 +88,20 @@ Describe "Set-XmlConfigValue" {
             XML = $expectedXMLNamedElement
             XPath = 'configuration/microsoft.identityServer.web'
             XmlNode = '<useRelayStateForIdpInitiatedSignOn enabled="true" />'  
+        }
+
+        [XML]$xmlResult = Set-XmlConfigValue @params
+        It "Should return nothing" {
+            $xmlResult | Should Be $null
+        }
+    }
+
+    Context "When there are no removals via a named element" {
+        $params = @{
+            XML = $testXMLNamedElement
+            XPath = 'configuration/microsoft.identityServer.web/useRelayStateForIdpInitiatedSignOn'
+            XmlNode = '<useRelayStateForIdpInitiatedSignOn enabled="true" />'
+            Operation = 'Remove'  
         }
 
         [XML]$xmlResult = Set-XmlConfigValue @params
@@ -165,6 +179,20 @@ Describe "Set-XmlConfigValue" {
         [XML]$xmlResult = Set-XmlConfigValue @params
         It "Should return updated XML with new element" {
             $xmlResult.OuterXml | Should Be $expectedXMLInserted.OuterXml
+        }
+    }
+
+    Context "When removing element via attribute 'name'"{
+        $params = @{
+            XML = $expectedXMLInserted
+            XPath = '/configuration/connectionStrings/add[@name="ConnectionString3"]'
+            XmlNode = '<add name="ConnectionString3" connectionString="Data Source=Server3;Initial Catalog=Database3;Integrated Security = true" providerName="System.Data.SqlClient" />'
+            Operation = 'Remove'
+        }
+
+        [XML]$xmlResult = Set-XmlConfigValue @params
+        It "Should return updated XML with element removed" {
+            $xmlResult.OuterXml | Should Be $expectedXML.OuterXml
         }
     }
 }

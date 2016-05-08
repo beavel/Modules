@@ -125,8 +125,8 @@ function Set-XmlConfigValue{
                 }
 
                 'Remove'{
-                    $oldNode = $node."$($newNode.ToString())"
-                    $node.RemoveChild($oldNode) | Out-Null
+                    $paretNode = $node.ParentNode
+                    $paretNode.RemoveChild($node) | Out-Null
                     $fileUpdated = $true
                     $changeType = 'Removed'
                 }
