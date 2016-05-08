@@ -47,25 +47,25 @@ function Set-XmlConfigValue{
         $fileUpdated = $false
         
 
-        [XML]$webConfig = Get-Content -Path $Path
+        [XML]$config = Get-Content -Path $Path
 
-        if([String]::IsNullOrEmpty($webConfig.xml)){
+        if([String]::IsNullOrEmpty($config.xml)){
             # Set encoding
-            $xmlDeclaration = $webConfig.CreateXmlDeclaration('1.0',$null,$null)
+            $xmlDeclaration = $config.CreateXmlDeclaration('1.0',$null,$null)
             $xmlDeclaration.Encoding = [System.Text.Encoding]::UTF8
         }
 
-        if([String]::IsNullOrEmpty($webConfig.DocumentElement.xmlns)){
-            $node = $webConfig.SelectSingleNode("$XPath")
+        if([String]::IsNullOrEmpty($config.DocumentElement.xmlns)){
+            $node = $config.SelectSingleNode("$XPath")
         }else{
-            $namespace = New-Object XmlNamespaceManager -ArgumentList $webConfig.NameTable
-            $namespace.AddNamespace('ns',$webConfig.DocumentElement.xmlns)
-            $node = $webConfig.SelectSingleNode("$XPath",$namespace)
+            $namespace = New-Object XmlNamespaceManager -ArgumentList $config.NameTable
+            $namespace.AddNamespace('ns',$config.DocumentElement.xmlns)
+            $node = $config.SelectSingleNode("$XPath",$namespace)
         }
         if($node -ne $null){
             $xmlElem = New-Object System.Xml.XmlDocument
             $xmlElem.LoadXml($XmlNode)
-            $newNode = $webConfig.ImportNode($xmlElem.DocumentElement,$true)
+            $newNode = $config.ImportNode($xmlElem.DocumentElement,$true)
 
             if((Test-XmlNode -ParentNode $node -XmlNode $newNode -MatchByName) -and ($Operation -eq 'Add')){
                 if( -not(Test-XmlNode -ParentNode $node -XmlNode $newNode)){
@@ -109,7 +109,7 @@ function Set-XmlConfigValue{
                         Set-FileAttributes -Path $Path -Attributes $desiredAttributes
                     }
 
-                    $webConfig.Save($Path)
+                    $config.Save($Path)
                     Write-Output ("{0}: {1} node {2} on XPath {3} in {4}..." `
                         -f (Get-Date),$changeType,$XmlNode,$XPath,$Path)
                     if($ResetFileAttributes){
