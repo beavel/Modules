@@ -1,5 +1,4 @@
 ﻿function New-EnvironmentConfig{
-    [CmdletBinding()]
     param(        
         [Parameter(Mandatory=$true, ParameterSetName='Path', Position=0,
             HelpMessage = "Enter a path to the XML config")]

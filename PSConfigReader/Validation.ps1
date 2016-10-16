@@ -40,7 +40,7 @@ function Test-HasGlobalConfigSection{
         [System.Xml.XmlDocument]$Config
     )
     $hasGlobal = $false
-    if((Get-GlobalNode $Config) -ne $null){
+    if($null -ne (Get-GlobalNode $Config)){
         $hasGlobal = $true
     }
     return $hasGlobal

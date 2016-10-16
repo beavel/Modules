@@ -13,7 +13,7 @@
         $gNodes = Get-AllChildNodes $Global.$rnName
         $eNodes = Get-AllChildNodes $Environment.$rnName
         foreach($gn in $gNodes){
-            if($Environment.$rnName.$($gn.Name) -eq $null){
+            if($null -eq $Environment.$rnName.$($gn.Name)){
                 $tmpConfig.$rnName.AppendChild($Global.$rnName.$($gn.Name)) `
                     | Out-Null
             }else{
