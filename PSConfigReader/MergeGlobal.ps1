@@ -11,7 +11,7 @@
         $tmpConfig = $Environment.Clone()
         $rnName = Get-RootNodeName $Environment
         $gNodes = Get-AllChildNodes $Global.$rnName
-        $eNodes = Get-AllChildNodes $Environment.$rnName
+
         foreach($gn in $gNodes){
             if($null -eq $Environment.$rnName.$($gn.Name)){
                 $tmpConfig.$rnName.AppendChild($Global.$rnName.$($gn.Name)) `
