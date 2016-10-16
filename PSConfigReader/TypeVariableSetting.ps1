@@ -1,4 +1,4 @@
-﻿function Set-Booleans{
+﻿function Set-Boolean{
     param(
 		[Parameter(Mandatory=$true,Position=0)]
 		[ValidateNotNullOrEmpty()]
@@ -31,12 +31,12 @@ function Set-ScriptBlock{
     Update-HashConfig $Hashtable $scriptblockReplace
 }
 
-function Set-PlaceHolders{
+function Set-PlaceHolder{
     param(
         [Parameter(Mandatory=$true,Position=0)]
 		[ValidateNotNullOrEmpty()]
 		[REF]$Hashtable,
-        
+
         [Parameter(Mandatory=$true,Position=1)]
         [Hashtable]$ReplacementValues
     )
@@ -47,7 +47,7 @@ function Set-PlaceHolders{
         }
         return $String
     }
-    
+
     Update-HashConfig $Hashtable $placeHolderReplace
 }
 
@@ -56,7 +56,7 @@ function Update-HashConfig{
 		[Parameter(Mandatory=$true,Position=0)]
 		[ValidateNotNullOrEmpty()]
 		[REF]$Hashtable,
-        
+
         [Parameter(Mandatory=$true,Position=1)]
         [ScriptBlock]$ReplaceScript
 	)

@@ -1,4 +1,4 @@
-﻿function Merge-ConfigNodes{
+﻿function Merge-ConfigNode{
     param(
         [Parameter(Mandatory=$true,Position=0)]
         [XmlElement]$Environment,

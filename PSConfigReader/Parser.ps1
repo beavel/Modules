@@ -5,14 +5,14 @@
     param(
         [Parameter(Mandatory=$true,Position=0,ParameterSetName='XmlDocument')]
         [System.Xml.XmlDocument]$XML,
-    
+
         [Parameter(Mandatory=$true,Position=0,ParameterSetName='XmlElement')]
         [System.Xml.XmlElement]$XmlElement,
-        
+
         [Parameter(Mandatory=$false, Position=1)]
         [ValidateSet("Property")]
         [String]$MemberType = 'Property',
-        
+
         [Parameter(Mandatory=$false, Position=2)]
         [ValidateSet('System.String','System.Xml.XmlElement','System.Object','All')]
         [String]$DefinitionMatch = 'System.String|string'
@@ -49,7 +49,7 @@ function Get-PropertyType{
     param(
         [Parameter(Mandatory=$true, Position=0, ParameterSetName='XmlElement')]
         [System.Xml.XmlElement]$XmlElement,
-        
+
         [Parameter(Mandatory=$true, Position=0, ParameterSetName='System.Object')]
         [System.Object[]]$Object
     )
@@ -94,6 +94,7 @@ function Get-PropertyParser{
 }
 
 function Get-AllChildNodes{
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseSingularNouns", "")]
     param(
         [XmlElement]$Element
     )

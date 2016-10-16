@@ -1,5 +1,5 @@
 ﻿function New-EnvironmentConfig{
-    param(        
+    param(
         [Parameter(Mandatory=$true, ParameterSetName='Path', Position=0,
             HelpMessage = "Enter a path to the XML config")]
         [ValidateNotNullOrEmpty()]
@@ -11,12 +11,12 @@
                 Test-Path -Path $_ -PathType Leaf
             }})]
         [String]$ConfigPath,
-        
+
         [Parameter(Mandatory=$true, ParameterSetName='XML', Position=0,
             HelpMessage = "Enter an XML variable.")]
         [ValidateNotNullOrEmpty()]
         [XML]$ConfigXML,
-        
+
         [ValidateRange(1,9)]
         [Int]$Version,
 
@@ -28,13 +28,13 @@
     DynamicParam {
             # Set the dynamic parameters' name
             $ParameterName = 'Environment'
-            
-            # Create the dictionary 
+
+            # Create the dictionary
             $RuntimeParameterDictionary = New-Object System.Management.Automation.RuntimeDefinedParameterDictionary
 
             # Create the collection of attributes
             $AttributeCollection = New-Object System.Collections.ObjectModel.Collection[System.Attribute]
-            
+
             # Create and set the parameters' attributes
             $ParameterAttribute = New-Object System.Management.Automation.ParameterAttribute
             $ParameterAttribute.Mandatory = $true
@@ -44,7 +44,7 @@
             # Add the attributes to the attributes collection
             $AttributeCollection.Add($ParameterAttribute)
 
-            # Generate and set the ValidateSet 
+            # Generate and set the ValidateSet
             $values = $EnvironmentList
             $ValidateSetAttribute = New-Object System.Management.Automation.ValidateSetAttribute($values)
 
@@ -56,7 +56,7 @@
             $RuntimeParameterDictionary.Add($ParameterName, $RuntimeParameter)
             return $RuntimeParameterDictionary
     }
-    
+
     BEGIN{
         switch($PsCmdlet.ParameterSetName){
             'Path'{[XML]$config = Get-Content -Path $ConfigPath}
@@ -83,7 +83,7 @@
                 $globalNode = Get-GlobalNode $config
                 $envConfig = Get-EnvironmentNode @configParams
                 if($MergeGlobal){
-                    $envConfig = Merge-ConfigNodes $envConfig $globalNode
+                    $envConfig = Merge-ConfigNode $envConfig $globalNode
                 }
             }else{
                 $envConfig = Get-EnvironmentNode @configParams
@@ -93,15 +93,15 @@
             if($ReturnAsIs){
                 return $envConfig
             }
-        
+
             $configHash = @{}
             $configHash = Get-HashtableFromConfigNode $envConfig
             Set-ScriptBlock ([REF]$configHash)
-            Set-Booleans ([REF]$configHash)
+            Set-Boolean ([REF]$configHash)
 
             if($globalNode){
                 $globals = Get-HashtableFromConfigNode $globalNode
-                Set-Booleans ([REF]$globals)
+                Set-Boolean ([REF]$globals)
                 $configHash.Add('Global', $globals)
             }
         }else{
@@ -124,41 +124,41 @@ function New-ParameterSetConfig{
                 Test-Path -Path $_ -PathType Leaf
             }})]
         [String]$ConfigPath,
-        
+
         [Parameter(Mandatory=$true, ParameterSetName='XML', Position=0,
             HelpMessage = "Enter an XML variable.")]
         [ValidateNotNullOrEmpty()]
         [XML]$ConfigXML,
-        
+
         [Parameter(Mandatory=$false, Position=1)]
         [Hashtable]$ReplaceValues
     )
-    
+
     switch($PsCmdlet.ParameterSetName){
         'Path'{[XML]$config = Get-Content -Path $ConfigPath}
         'XML'{[XML]$config = $ConfigXML}
     }
     $parameterSets = @()
-    
+
     if(Test-IsConfigValid $Config -Type ParameterSet){
         foreach($ps in $config.ParameterSets.ParameterSet){
             [Hashtable]$tmpHashConfig = Get-HashtableFromConfigNode $ps
 
             if($ReplaceValues -ne $null){
-                Set-Placeholders ([REF]$tmpHashConfig) $ReplaceValues
+                Set-PlaceHolder ([REF]$tmpHashConfig) $ReplaceValues
             }
 
-            Set-Booleans ([REF]$tmpHashConfig)
+            Set-Boolean ([REF]$tmpHashConfig)
             Set-ScriptBlock ([REF]$tmpHashConfig)
 
             if(Test-HasGlobalConfigSection $config){
                 $globals = Get-HashtableFromConfigNode $(Get-GlobalNode $config)
-                
+
                 if($ReplaceValues -ne $null){
-                    Set-Placeholders ([REF]$globals) $ReplaceValues
+                    Set-PlaceHolder ([REF]$globals) $ReplaceValues
                 }
 
-                Set-Booleans ([REF]$globals)
+                Set-Boolean ([REF]$globals)
                 $tmpHashConfig.Add('Global', $globals)
 
             }
