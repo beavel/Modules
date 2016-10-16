@@ -79,7 +79,7 @@ function Update-HashConfig{
             -or $_ -match 'System.Collections.ArrayList'}{
 				if(-not [System.String]::IsNullOrEmpty($Hashtable.Value.$key)){
                     [Array]$tmpTmpArray = @();
-                    $Hashtable.Value.$key | %{$tmpTmpArray += `
+                    $Hashtable.Value.$key | foreach{$tmpTmpArray += `
     				    $ReplaceScript.InvokeReturnAsIs($_)}
     				$tmpHashtable.Add($key, $tmpTmpArray)
                 }

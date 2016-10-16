@@ -98,7 +98,7 @@ function Get-AllChildNodes{
     param(
         [XmlElement]$Element
     )
-    return $Element | gm -MemberType 'Property' `
+    return $Element | Get-Member -MemberType 'Property' `
         | select -Property Name, `
           @{Name="Type";Expression={$_.Definition.Split(' ')[0]}}
 }
