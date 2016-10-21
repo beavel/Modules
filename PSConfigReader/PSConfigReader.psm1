@@ -12,5 +12,5 @@ if(-not(Get-Module -name $name)){
 Set-ExtendedTypeAccelerators $typeAccelerators
 
 Push-Location -Path "$(Split-Path -Parent $MyInvocation.MyCommand.Path)"
-Get-ChildItem -Path * -Include *.ps1 | foreach{. $_.FullName}
+Get-ChildItem -Path * -Include *.ps1 -Exclude *Tests* | foreach{. $_.FullName}
 Pop-Location
