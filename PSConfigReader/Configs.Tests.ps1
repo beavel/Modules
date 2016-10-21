@@ -3,6 +3,26 @@ Import-Module $PSScriptRoot\PSConfigReader.psm1 -Force
 
 Describe "New-EnvironmentConfig" {
 
+function Assert-HashtableEqual
+{
+    param(
+        [Hashtable]$First,
+        [Hashtable]$Second
+    )
+
+    $First.Keys.Count | Should Be $Second.Keys.Count
+    [String]::Compare(($First.Keys | sort | ConvertTo-Json),
+                ($Second.Keys | sort | ConvertTo-Json),$true) | Should Be 0
+
+    foreach($key in $First.Keys){
+        if(($First.$key).GetType().FullName -eq 'System.Collections.Hashtable'){
+            Assert-HashtableEqual -First $First.$key -Second $Second.$key
+        }else{
+            $First.$key | Should BeExactly $Second.$key
+        }
+    }
+}
+
 [XML]$environmentConfig = @"
 <Environments>
     <Environment Name="DEV">
@@ -45,6 +65,16 @@ Describe "New-EnvironmentConfig" {
         $config = New-EnvironmentConfig -ConfigXML $environmentConfig -Environment Dev
         It "Should return a Hashtable" {
             $config | Should BeOfType Hashtable
+        }
+        
+        It "Should have the expected set of keys" {
+            $config.Keys.Count | Should Be $expectedResult.Keys.Count
+            [String]::Compare(($config.Keys | ConvertTo-Json),
+                ($expectedResult.Keys | ConvertTo-Json),$true) | Should Be 0
+        }
+
+        It "Should match the expected result" {
+            Assert-HashtableEqual -First $config -Second $expectedResult
         }
     }
 
