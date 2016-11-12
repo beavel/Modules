@@ -17,30 +17,21 @@
         [ValidateSet('System.String','System.Xml.XmlElement','System.Object','All')]
         [String]$DefinitionMatch = 'System.String|string'
     )
-    try{
-        switch($PsCmdlet.ParameterSetName){
-            'XmlDocument'{$XMLToParse = $XML}
-            'XmlElement'{$XMLToParse = $XmlElement}
-        }
-        [Array]$tmpPropArray = @();
-        if($DefinitionMatch.ToUpper() -eq 'ALL'){
-            $dm = 'System.String|System.Xml.XmlElement|System.Object'
-        }else{
-            $dm = $DefinitionMatch
-        }
-        $tmpPropArray = $XMLToParse | Get-Member |
-            where{$_.MemberType -eq "$MemberType" -and $_.Definition -match "$dm"} |
-            select -ExpandProperty Name
-        return $tmpPropArray
+    
+    switch($PsCmdlet.ParameterSetName){
+        'XmlDocument'{$XMLToParse = $XML}
+        'XmlElement'{$XMLToParse = $XmlElement}
     }
-    catch{
-        #Region ### Logging ###
-        $tmpLogEntry = New-LogEntry $XMLToParse.GetType().FullName `
-            $("Failed to get XML Property for {0}." `
-            -f $DefinitionMatch) 'Error'
-        $Log.Add($tmpLogEntry)
-        #EndRegion ### End Logging ###
+    [Array]$tmpPropArray = @();
+    if($DefinitionMatch.ToUpper() -eq 'ALL'){
+        $dm = 'System.String|System.Xml.XmlElement|System.Object'
+    }else{
+        $dm = $DefinitionMatch
     }
+    $tmpPropArray = $XMLToParse | Get-Member |
+        where{$_.MemberType -eq "$MemberType" -and $_.Definition -match "$dm"} |
+        select -ExpandProperty Name
+    return $tmpPropArray
 }
 
 
