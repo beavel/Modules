@@ -4,8 +4,8 @@
         [Parameter(Mandatory=$true,Position=0)]
         [System.Xml.XmlElement]$Config
     )
-    $propertyParser = Get-PropertyParser
-    return $propertyParser.InvokeReturnAsIs($Config, 'System.String')
+    $tmpArrays = Search-ConfigForPropertyType -Config $Config -Type Array
+    return $tmpArrays
 }
 
 function Get-HashProperties{
@@ -14,15 +14,18 @@ function Get-HashProperties{
         [Parameter(Mandatory=$true,Position=0)]
         [System.Xml.XmlElement]$Config
     )
-    $propertyParser = Get-PropertyParser
-    return $propertyParser.InvokeReturnAsIs($Config, 'System.Xml.XmlElement')
+    $propertyParser = Search-ConfigForPropertyType -Config $Config -Type Hashtable
+    return $propertyParser
 }
 
 function Get-StringProperties{
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseSingularNouns", "")]
     param(
         [Parameter(Mandatory=$true,Position=0)]
-        [System.Xml.XmlElement]$Config
+        [System.Xml.XmlElement]$Config,
+
+        [Parameter(Mandatory=$false,Position=1)]
+        [String[]]$ExcludedProperty
     )
-    return Get-NodeNamesFromXml $Config
+    return (Get-NodeNamesFromXml $Config) | where{$ExcludedProperty -notcontains $_}
 }

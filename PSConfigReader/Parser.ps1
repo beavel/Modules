@@ -28,9 +28,9 @@
         }else{
             $dm = $DefinitionMatch
         }
-        $tmpPropArray = $XMLToParse | Get-Member | `
-            where{$_.MemberType -eq "$MemberType" -and $_.Definition -match "$dm"} `
-            | foreach{$_.Name.ToString()}
+        $tmpPropArray = $XMLToParse | Get-Member |
+            where{$_.MemberType -eq "$MemberType" -and $_.Definition -match "$dm"} |
+            select -ExpandProperty Name
         return $tmpPropArray
     }
     catch{
@@ -49,15 +49,14 @@ function Get-PropertyType{
     param(
         [Parameter(Mandatory=$true, Position=0, ParameterSetName='XmlElement')]
         [System.Xml.XmlElement]$XmlElement,
-
+        
         [Parameter(Mandatory=$true, Position=0, ParameterSetName='System.Object')]
         [System.Object[]]$Object
     )
     switch($PsCmdlet.ParameterSetName){
         'XmlElement'{
-            return $XmlElement | Get-Member `
-                 | Where-Object {$_.MemberType -like 'Property'} `
-                 | select -First 1 | foreach{$_.Definition.Split(' ')[0]}
+            return $XmlElement | Get-Member -MemberType Property |
+                foreach{$_.Definition.Split(' ')[0]}
         }
         'System.Object'{
             return $Object[0].GetType().FullName
@@ -65,32 +64,43 @@ function Get-PropertyType{
     }
 }
 
-function Get-PropertyParser{
-    [ScriptBlock]$propParser = {
-        param($Config, $DefinitionType)
-        [Array]$tmpProps = @()
-        $xmlParameters = Get-NodeNamesFromXml $Config `
-            -DefinitionMatch System.Xml.XmlElement
-        if($xmlParameters){
-            foreach($xmlParameter in $xmlParameters){
-                # array of one single item #
-                if($(Get-PropertyType $Config.$xmlParameter) -eq $DefinitionType){
-                    $tmpProps += [Hashtable]@{$xmlParameter = $DefinitionType}
-                }
-                # array of multiple items #
-                $sysObject = Get-NodeNamesFromXml $Config.$xmlParameter `
-                  -DefinitionMatch "System.Object"
-                if($sysObject){
-                    if($(Get-PropertyType $Config.$xmlParameter.$sysObject) `
-                      -eq $DefinitionType){
-                        $tmpProps += [Hashtable]@{$xmlParameter='System.Object'}
-                    }
-                }
+function Search-ConfigForPropertyType{
+    param(
+        [Parameter(Mandatory=$true)]
+        [XmlElement]$Config,
+
+        [Parameter(Mandatory=$true)]
+        [ValidateSet('Array','Hashtable')]
+        [String]$Type
+    )
+
+    switch($Type){
+        'Array'{
+            $definitionType = 'string|System.String'
+        }
+        'Hashtable'{
+            $definitionType = 'System.Xml.XmlElement'
+        }
+    }
+
+    [Array]$tmpProps = @()
+    $xmlParams = @{
+        XmlElement = $Config
+        DefinitionMatch = 'System.Xml.XmlElement'
+    }
+    $xmlParameters = Get-NodeNamesFromXml @xmlParams
+    if($xmlParameters){
+        foreach($xmlParameter in $xmlParameters){
+            if($Type -eq 'Array' -and (Test-IsArray -XmlElement $Config.$xmlParameter)){
+                $tmpProps += $Config.$xmlParameter
+            }
+
+            if($Type -eq 'Hashtable' -and (Test-IsHashtable -XmlElement $Config.$xmlParameter)){
+                $tmpProps += $Config.$xmlParameter
             }
         }
-        return $tmpProps
     }
-    return $propParser
+    return $tmpProps
 }
 
 function Get-AllChildNodes{
@@ -101,4 +111,64 @@ function Get-AllChildNodes{
     return $Element | Get-Member -MemberType 'Property' `
         | select -Property Name, `
           @{Name="Type";Expression={$_.Definition.Split(' ')[0]}}
+}
+
+function Test-IsArray{
+    param(
+        [XmlElement]$XmlElement
+    )
+    if($(Get-PropertyType $XmlElement) -eq 'string'){
+        return $true
+    }
+
+    if($(Get-PropertyType $XmlElement) -eq 'System.xml.XmlElement' -and `
+        $XmlElement.HasAttributes -eq $false -and `
+        $XmlElement.$($XmlElement | 
+                Get-Member -MemberType Property | 
+                select -ExpandProperty Name).HasAttributes -eq $false){
+        return $true
+    }
+
+
+    $sysObject = Get-NodeNamesFromXml $XmlElement -DefinitionMatch "System.Object"
+    if($sysObject -and `
+        $(Get-PropertyType $XmlElement.$sysObject) -eq 'System.String')
+    {
+        return $true
+    }
+
+    if($sysObject -and `
+        $(Get-PropertyType $XmlElement.$sysObject) -eq 'System.xml.XmlElement' -and `
+        $XmlElement.$sysObject[0].HasAttributes -eq $false)
+    {
+        return $true
+    }
+
+    return $false
+}
+
+function Test-IsHashtable{
+    param(
+        [XmlElement]$XmlElement
+    )
+
+    if($(Get-PropertyType $XmlElement) -eq 'System.Xml.XmlElement' -and `
+        $XmlElement.$($XmlElement | 
+                Get-Member -MemberType Property | 
+                select -ExpandProperty Name).HasAttributes)
+    {
+        return $true
+    }
+
+    $sysObject = Get-NodeNamesFromXml $XmlElement -DefinitionMatch "System.Object"
+    if($sysObject -and `
+        $(Get-PropertyType $XmlElement.$sysObject) -eq 'System.Xml.XmlElement' -and `
+        $XmlElement.$sysObject[0].HasAttribute('key') -and `
+        $XmlElement.$sysObject[0].HasAttribute('value')
+        )
+    {
+        return $true
+    }
+
+    return $false
 }

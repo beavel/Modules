@@ -4,22 +4,18 @@
         [System.Xml.XmlElement]$ConfigNode
     )
     $tmpConfigHash = @{}
-    $strProps = Get-StringProperties $ConfigNode
+    $strProps = Get-StringProperties $ConfigNode -ExcludedProperty 'Name'
     if($strProps){
         foreach($strProp in $strProps){
-            if($strProp -ne 'Name'){
-                $tmpConfigHash.Add($strProp, $ConfigNode.$strProp)
-            }
+            $tmpConfigHash.Add($strProp, $ConfigNode.$strProp)
         }
     }
     $arrayProps = Get-ArrayProperties $ConfigNode
     if($arrayProps){
         foreach($arrayProp in $arrayProps){
             [Array]$tmpArray = @()
-            $finalProp = Get-NodeNamesFromXml $($ConfigNode.$($arrayProp.Keys)) `
-              -DefinitionMatch $arrayProp.Values
-            [Array]$tmpArray = $ConfigNode.$($arrayProp.Keys).$finalProp
-            $tmpConfigHash.Add($($arrayProp.Keys), [Array]$tmpArray)
+            [Array]$tmpArray = Get-ArrayFromXmlElement -XmlElement $arrayProp
+            $tmpConfigHash.Add($arrayProp.Name, [Array]$tmpArray)
         }
     }
     
@@ -27,12 +23,9 @@
     if($hashProps){
         foreach($hashProp in $hashProps){
             [Hashtable]$tmpHash = @{}
-            $finalProp = Get-NodeNamesFromXml $($ConfigNode.$($hashProp.Keys)) `
-              -DefinitionMatch $hashProp.Values
-            foreach($elem in $ConfigNode.$($hashProp.Keys).$finalProp){
-                $tmpHash.Add($elem.Key, $elem.Value)
-            }
-            $tmpConfigHash.Add($($hashProp.Keys),$tmpHash)
+            $tmpHash = Get-HashtableFromXmlElement -XmlElement $hashProp
+                        
+            $tmpConfigHash.Add($hashProp.Name,$tmpHash)
         }
     }
 

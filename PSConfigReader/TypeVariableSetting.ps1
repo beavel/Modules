@@ -24,7 +24,7 @@ function Set-ScriptBlock{
     [ScriptBlock]$scriptblockReplace = {
         param([String]$String)
         if($String.StartsWith('{') -and $String.EndsWith('}')){
-            return [ScriptBlock]::Create($String)
+            return [ScriptBlock]::Create($String.TrimStart('{').TrimEnd('}'))
         }
         return $String
     }
@@ -75,12 +75,20 @@ function Update-HashConfig{
 				$tmpHashtable.Add($key, $tmpTmpHashtable)
                 break
 			}
-			{$_ -match "System.Object\[\]" `
-            -or $_ -match 'System.Collections.ArrayList'}{
-				if(-not [System.String]::IsNullOrEmpty($Hashtable.Value.$key)){
+			{$_ -match "System.Object\[\]|System.Collections.ArrayList"}{
+				if(-not [System.String]::IsNullOrEmpty($Hashtable.Value.$key))
+                {
                     [Array]$tmpTmpArray = @();
-                    $Hashtable.Value.$key | foreach{$tmpTmpArray += `
-    				    $ReplaceScript.InvokeReturnAsIs($_)}
+                    $Hashtable.Value.$key | foreach{
+                        if($_.GetType().FullName -eq 'System.Collections.Hashtable')
+                        {
+                            Update-HashConfig -Hashtable ([REF]$_) -ReplaceScript $ReplaceScript
+                            $tmpTmpArray += $_
+                        }
+                        else
+                        {
+                            $tmpTmpArray += $ReplaceScript.InvokeReturnAsIs($_)}
+                        }
     				$tmpHashtable.Add($key, $tmpTmpArray)
                 }
 			}
