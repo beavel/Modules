@@ -28,8 +28,9 @@
     }else{
         $dm = $DefinitionMatch
     }
-    $tmpPropArray = $XMLToParse | Get-Member |
-        where{$_.MemberType -eq "$MemberType" -and $_.Definition -match "$dm"} |
+    $tmpPropArray = $XMLToParse | 
+        Get-Member -MemberType $MemberType |
+        where{$_.Definition -match "$dm"} |
         select -ExpandProperty Name
     return $tmpPropArray
 }
