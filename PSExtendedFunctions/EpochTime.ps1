@@ -1,9 +1,27 @@
 ﻿function ConvertFrom-EpochTime{
     param(
-        [Parameter(Mandatory=$true)]
-        [Long]$Seconds
+        [Parameter(Mandatory=$true,ParameterSetName='Seconds')]
+        [Long]$Seconds,
+
+        [Parameter(Mandatory=$true,ParameterSetName='Milliseconds')]
+        [Long]$Milliseconds,
+
+        [Switch]$InUtcTime
     )
-    (Get-EpochTime).AddSeconds($Seconds).ToLocalTime()
+    switch($PSCmdlet.ParameterSetName){
+        'Seconds'{
+            $date = (Get-EpochTime).AddSeconds($Seconds)
+        }
+        'Milliseconds'{
+            $date = (Get-EpochTime).AddMilliseconds($Milliseconds)
+        }
+    }
+
+    if($InUtcTime){
+        $date.ToUniversalTime()
+    }else{
+        $date.ToLocalTime()
+    }
 }
 
 function ConvertTo-EpochTime{
