@@ -27,14 +27,22 @@
 function ConvertTo-EpochTime{
     param(
         [Parameter(Mandatory=$true)]
-        [DateTime]$DateTime
+        [DateTime]$DateTime,
+
+        [Switch]$InMilliseconds
     )
     $timeSpanParams = @{
         Start = Get-EpochTime
         End = $DateTime.ToUniversalTime()
     }
 
-    [Long](New-TimeSpan @timeSpanParams).TotalSeconds
+    [Timespan]$epochTimeSpan = (New-TimeSpan @timeSpanParams)
+    if ($InMilliseconds){
+        [Long]$epochTimeSpan.TotalMilliseconds.ToString('0')
+    }
+    else{
+        [Long]$epochTimeSpan.TotalSeconds.ToString('0')
+    }
 }
 
 function Get-EpochTime{
